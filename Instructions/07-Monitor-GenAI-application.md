@@ -34,9 +34,12 @@ lab:
     1. 输入**项目名**。
     1. 出现提示时，**创建新中心**。
     1. 自定义中心：
+
         1. 选择**订阅**、**资源组**和**位置**等。
         1. 连接**新 Azure AI 服务**资源（跳过 AI 搜索）。
+
     1. 复查设置并选择“创建”。****
+
 1. **等待部署完成**（等待 1-2 分钟）。
 
 ### B. 部署模型
@@ -82,7 +85,7 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
 1. 在 Cloud Shell 窗格中，输入并运行以下命令：
 
     ```
-    rm -r mslearn-ai-foundry -f
+    rm -r mslearn-genaiops -f
     git clone https://github.com/microsoftlearning/mslearn-genaiops mslearn-genaiops
     ```
 
@@ -91,7 +94,7 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
 1. 克隆存储库后，导航到包含应用程序代码文件的文件夹：  
 
     ```
-   cd mslearn-ai-foundry/Files/07
+   cd mslearn-genaiops/Files/07
     ```
 
 1. 在 Cloud Shell 命令行窗格中，输入以下命令以安装需要的库：
