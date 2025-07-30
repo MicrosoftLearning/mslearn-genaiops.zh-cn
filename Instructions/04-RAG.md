@@ -1,15 +1,18 @@
 ---
 lab:
   title: 协调 RAG 系统
+  description: 了解如何在应用中实现检索增强生成 (RAG) 系统，以提高生成的响应的准确性和相关性。
 ---
 
 ## 协调 RAG 系统
 
 检索增强生成 (RAG) 系统将大型语言模型的强大功能与高效的检索机制相结合，以提高生成响应的准确性和相关性。 通过利用 LangChain 实现业务流程并利用 Azure AI Foundry 实现 AI 功能，我们可以创建可靠的管道，从数据集中检索相关信息并生成一致的响应。 在本练习中，你将完成设置环境、预处理数据、创建嵌入和生成索引的步骤，最终使你能够有效实现 RAG 系统。
 
+该练习大约需要 **30** 分钟。
+
 ## 场景
 
-假设你要生成一款提供有关酒店建议的应用。 在应用中，你需要一个代理，该代理不仅可以推荐酒店，还可以回答用户可能提出的问题。
+假设你要构建一个应用，用于提供有关伦敦的酒店的建议。 在应用中，你需要一个代理，该代理不仅可以推荐酒店，还可以回答用户可能提出的问题。
 
 你已选择 GPT-4 模型提供生成式答案。 现在，你需要生成 RAG 系统，该系统将基于其他用户的评论向模型提供基础数据，引导聊天行为提供个性化建议。
 
@@ -25,27 +28,31 @@ lab:
 
     > **备注**：如果以前创建了使用 *Bash* 环境的 Cloud Shell，请将其切换到 ***PowerShell***。
 
+1. 在 Cloud Shell 工具栏的“**设置**”菜单中，选择“**转到经典版本**”。
+
+    **<font color="red">在继续操作之前，请确保已切换到 Cloud Shell 的经典版本。</font>**
+
 1. 在 PowerShell 窗格中，输入以下命令以克隆本练习的存储库：
 
-     ```powershell
-    rm -r mslearn-genaiops -f
-    git clone https://github.com/MicrosoftLearning/mslearn-genaiops
-     ```
+    ```powershell
+   rm -r mslearn-genaiops -f
+   git clone https://github.com/MicrosoftLearning/mslearn-genaiops
+    ```
 
 1. 克隆存储库后，输入以下命令以初始化初学者模板。 
    
-     ```powershell
-    cd ./mslearn-genaiops/Starter
-    azd init
-     ```
+    ```powershell
+   cd ./mslearn-genaiops/Starter
+   azd init
+    ```
 
 1. 出现提示后，为新环境命名，因其将用作为所有预配资源提供唯一名称的依据。
         
 1. 接下来，输入以下命令以运行初学者模板。 它将使用依赖资源、AI 项目、AI 服务和联机终结点预配 AI 中心。 它还将部署模型 GPT-4 Turbo、GPT-4o 和 GPT-4o mini。
 
-     ```powershell
-    azd up  
-     ```
+    ```powershell
+   azd up  
+    ```
 
 1. 出现提示时，请选择要使用的订阅，然后选择以下任一资源预配位置：
    - 美国东部
@@ -76,19 +83,65 @@ lab:
 
      ```powershell
     Get-AzCognitiveServicesAccount -ResourceGroupName <rg-env_name> -Name <aoai-xxxxxxxxxx> | Select-Object -Property endpoint
+     ```
+
+     ```powershell
     Get-AzCognitiveServicesAccountKey -ResourceGroupName <rg-env_name> -Name <aoai-xxxxxxxxxx> | Select-Object -Property Key1
      ```
 
 1. 复制这些值，因为稍后将使用这些值。
 
-## 设置本地开发环境
+## 在 Cloud Shell 中设置开发环境
 
-要快速试验和循环访问，需在 Visual Studio (VS) Code 中将笔记本与 Python 代码配合使用。 让我们准备好 VS Code 以进行本地构思。
+若要快速试验和迭代，需要在 Cloud Shell 中使用一组 Python 脚本。
 
-1. 打开 VS Code 并**克隆**以下 Git 存储库：[https://github.com/MicrosoftLearning/mslearn-genaiops.git](https://github.com/MicrosoftLearning/mslearn-genaiops.git)
-1. 将克隆存储在本地驱动器上，并在克隆后打开该文件夹。
-1. 在 VS Code 资源管理器（左窗格中）的 **Files/04** 文件夹中，打开 **04-RAG.ipynb** 笔记本。
-1. 运行笔记本中的所有单元格。
+1. 在 Cloud Shell 命令行窗格中，输入以下命令，导航到本练习中使用的代码文件所在的文件夹：
+
+     ```powershell
+    cd ~/mslearn-genaiops/Files/04/
+     ```
+
+1. 输入以下命令以激活虚拟环境，并安装所需的库：
+
+    ```powershell
+   python -m venv labenv
+   ./labenv/bin/Activate.ps1
+   pip install python-dotenv langchain-text-splitters langchain-community langchain-openai
+    ```
+
+1. 输入以下命令以打开已提供的配置文件：
+
+    ```powershell
+   code .env
+    ```
+
+    该文件已在代码编辑器中打开。
+
+1. 在代码文件中，将 your_azure_openai_service_endpoint**** 和 your_azure_openai_service_api_key**** 占位符替换为之前复制的终结点和密钥值。
+1. 替换占位符后**，在代码编辑器中，使用 Ctrl+S**** 命令或通过右键单击 >“保存”**** 来保存更改，然后使用 Ctrl+Q**** 命令或通过右键单击 >“退出”**** 来关闭代码编辑器，同时将 cloud shell 命令行保持打开状态。
+
+## 实现 RAG
+
+现在，你将运行一个脚本，该脚本会引入并预处理数据、创建嵌入，并生成向量存储和索引，从而有效支持实现一个 RAG 系统。
+
+1. 运行以下命令以查看提供的脚本****：
+
+    ```powershell
+   code RAG.py
+    ```
+
+1. 查看脚本，你会注意到它使用了一个包含酒店评论的 .csv 文件作为基础数据。 可以通过运行命令 `download app_hotel_reviews.csv` 并打开文件来查看此文件的内容。
+1. 在命令行中输入以下命令以**运行脚本**：
+
+    ```
+   python RAG.py
+    ```
+
+1. 应用程序运行后，你可以开始提问，例如 `Where can I stay in London?`，然后继续提出更具体的问题进行深入查询。
+
+## 结束语
+
+在本练习中，你构建了一个典型的 RAG 系统及其主要组件。 通过使用你自己的文档来辅助模型的响应，你为 LLM 提供了在制定响应内容时使用的基础数据。 对于企业解决方案，这意味着可以将生成式 AI 的输出限定在企业内容范围内。
 
 ## 清理
 
