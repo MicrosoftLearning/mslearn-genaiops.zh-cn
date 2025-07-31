@@ -26,9 +26,9 @@ lab:
 
 ### 创建 Azure AI 中心和项目
 
-> **备注**：如果已有 Azure AI 中心和项目，则可以跳过此过程并使用现有项目。
+> **注意**：如果你已有 Azure AI 项目，可以跳过这一过程，并使用现有项目。
 
-可以通过 Azure AI Foundry 门户手动创建 Azure AI 中心和项目，以及部署练习中使用的模型。 但是，还可以通过将模板应用程序与 [Azure Developer CLI (azd)](https://aka.ms/azd) 结合使用来自动执行此过程。
+可以通过 Azure AI Foundry 门户手动创建 Azure AI 项目，以及部署练习中使用的模型。 但是，还可以通过将模板应用程序与 [Azure Developer CLI (azd)](https://aka.ms/azd) 结合使用来自动执行此过程。
 
 1. 在 Web 浏览器中打开 [Azure 门户](https://portal.azure.com)，网址为：`https://portal.azure.com`，然后使用 Azure 凭据登录。
 
@@ -43,15 +43,15 @@ lab:
     git clone https://github.com/MicrosoftLearning/mslearn-genaiops
      ```
 
-1. 克隆存储库后，输入以下命令以初始化初学者模板。 
-   
+1. 克隆存储库后，输入以下命令以初始化初学者模板。
+
      ```powershell
     cd ./mslearn-genaiops/Starter
     azd init
      ```
 
 1. 出现提示后，为新环境命名，因其将用作为所有预配资源提供唯一名称的依据。
-        
+
 1. 接下来，输入以下命令以运行初学者模板。 它将使用依赖资源、AI 项目、AI 服务和联机终结点预配 AI 中心。
 
      ```powershell
@@ -66,7 +66,7 @@ lab:
    - 瑞典中部
    - 美国西部
    - 美国西部 3
-    
+
 1. 等待脚本完成 - 此过程通常需要大约 10 分钟；但在某些情况下可能需要更长的时间。
 
     > **备注**：Azure OpenAI 资源在租户级别受区域配额限制。 上面列出的区域包括本练习中所用模型类型的默认配额。 随机选择区域可降低单个区域达到其配额限制的风险。 如果达到配额限制，则可能需要在其他区域中创建另一个资源组。 详细了解 [每个区域的模型可用性](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models?tabs=standard%2Cstandard-chat-completions#global-standard-model-availability)
@@ -91,101 +91,128 @@ lab:
      ```
 
 1. 复制这些值，因为稍后将使用这些值。
-   
-### 设置本地开发环境
 
-要快速试验和循环访问，请在 Visual Studio (VS) Code 中使用 Prompty。 让我们准备好 VS Code 以进行本地构思。
+### 在 Cloud Shell 中设置虚拟环境
 
-1. 打开 VS Code 并**克隆**以下 Git 存储库：[https://github.com/MicrosoftLearning/mslearn-genaiops.git](https://github.com/MicrosoftLearning/mslearn-genaiops.git)
-1. 将克隆存储在本地驱动器上，并在克隆后打开该文件夹。
-1. 在 VS Code 中的“扩展”窗格中，搜索并安装 **Prompty** 扩展。
-1. 在 VS Code 资源管理器（左窗格）中，右键单击“**Files/03**”文件夹。
-1. 从下拉菜单中选择“**新建 Prompty**”。
-1. 打开名为 **basic.prompty** 的新建文件。
-1. 选择右上角的“**播放**”按钮（或按 F5）运行 Prompty 文件。
-1. 提示登录时，选择“**允许**”。
-1. 选择 Azure 帐户并登录。
-1. 返回到 VS Code，其中“**输出**”窗格将打开并显示错误消息。 错误消息应告知未指定或找不到已部署的模型。
+若要快速试验和迭代，需要在 Cloud Shell 中使用一组 Python 脚本。
 
-要修复此错误，需要配置模型以供 Prompty 使用。
+1. 在 Cloud Shell 命令行窗格中，输入以下命令，导航到本练习中使用的代码文件所在的文件夹：
 
-## 更新提示元数据
+     ```powershell
+    cd ~/mslearn-genaiops/Files/03/
+     ```
 
-要执行 Prompty 文件，需要指定用于生成响应的语言模型。 元数据在 Prompty 文件的 *frontmatter* 中定义。 让我们使用模型配置和其他信息更新元数据。
+1. 输入以下命令以激活虚拟环境，并安装所需的库：
 
-1. 打开 Visual Studio Code 终端窗格。
-1. 复制 **basic.prompty** 文件（在同一文件夹中），并将副本重命名为`chat-1.prompty`。
-1. 打开 **chat-1.prompty** 并更新以下字段以更改一些基本信息：
-
-    - **名称：**
-
-        ```yaml
-        name: Python Tutor Prompt
-        ```
-
-    - **说明：**
-
-        ```yaml
-        description: A teaching assistant for students wanting to learn how to write and edit Python code.
-        ```
-
-    - **已部署的模型**：
-
-        ```yaml
-        azure_deployment: ${env:AZURE_OPENAI_CHAT_DEPLOYMENT}
-        ```
-
-1. 接下来，在 **azure_deployment** 参数下为 API 密钥添加以下占位符。
-
-    - **终结点密钥**：
-
-        ```yaml
-        api_key: ${env:AZURE_OPENAI_API_KEY}
-        ```
-
-1. 保存更新后的 Prompty 文件。
-
-Prompty 文件现在具有所有必要的参数，但某些参数使用占位符来获取所需的值。 占位符存储在同一文件夹的 **.env** 文件中。
-
-## 更新模型配置
-
-要指定 Prompty 使用的模型，需要在 .env 文件中提供模型的信息。
-
-1. 在 **Files/03** 文件夹中打开 **.env** 文件。
-1. 使用此前从 Azure 门户中模型部署的输出中复制的值更新每个占位符：
-
-    ```yaml
-    - AZURE_OPENAI_CHAT_DEPLOYMENT="gpt-4"
-    - AZURE_OPENAI_ENDPOINT="<Your endpoint target URI>"
-    - AZURE_OPENAI_API_KEY="<Your endpoint key>"
+    ```powershell
+   python -m venv labenv
+   ./labenv/bin/Activate.ps1
+   pip install python-dotenv openai tiktoken azure-ai-projects prompty[azure]
     ```
 
-1. 保存 .env 文件。
-1. 再次运行 **chat-1.prompty** 文件。
+1. 输入以下命令以打开已提供的配置文件：
 
-现在，应收到 AI 生成的响应，尽管它只使用示例输入而与应用场景无关。 让我们更新模板，使其成为 AI 助教。
-
-## 编辑示例部分
-
-示例部分指定对 Prompty 的输入，并提供要使用的默认值（如果未提供任何输入）。
-
-1. 编辑以下参数的字段：
-
-    - **firstName**：选择任何其他名称。
-    - **context**：移除整个部分。
-    - **question**：将提供的文本替换为：
-
-    ```yaml
-    What is the difference between 'for' loops and 'while' loops?
+    ```powershell
+   code .env
     ```
 
-    现在，**示例**部分应该如下所示：
-    
-    ```yaml
-    sample:
-    firstName: Daniel
-    question: What is the difference between 'for' loops and 'while' loops?
+    该文件已在代码编辑器中打开。
+
+1. 在代码文件中，将 ENDPOINTNAME**** 和 APIKEY**** 占位符替换为之前复制的终结点和密钥值。
+1. 替换占位符后**，在代码编辑器中，使用 Ctrl+S**** 命令或通过右键单击 >“保存”**** 来保存更改，然后使用 Ctrl+Q**** 命令或通过右键单击 >“退出”**** 来关闭代码编辑器，同时将 cloud shell 命令行保持打开状态。
+
+## 优化系统提示
+
+在生成式 AI 的大规模部署中，尽可能缩短系统提示的长度，同时保持其功能性，是一项关键任务。 更短的提示可以加快响应速度，因为 AI 模型处理的词元更少，此外，还能降低计算资源的消耗。
+
+1. 请输入以下命令，打开已提供的应用程序文件：
+
+    ```powershell
+   code optimize-prompt.py
     ```
 
-    1. 运行更新的 Prompty 文件并查看输出。
+    查看代码，注意脚本执行的 `start.prompty` 模板文件已经有预定义的系统提示。
 
+1. 运行 `code start.prompty` 以查看系统提示。 请思考如何在保持意图清晰有效的前提下缩短提示。 例如：
+
+   ```python
+   original_prompt = "You are a helpful assistant. Your job is to answer questions and provide information to users in a concise and accurate manner."
+   optimized_prompt = "You are a helpful assistant. Answer questions concisely and accurately."
+   ```
+
+   删除冗余字词，聚焦核心指令。 将优化后的提示保存到文件中。
+
+### 测试和验证优化
+
+测试提示更改非常重要，可以确保在不降低质量的情况下减少词元使用量。
+
+1. 运行 `code token-count.py` 以打开并查看练习中提供的词元计数器应用。 如果你使用的优化提示不同于上述示例中提供的提示，也可以在此应用中使用它。
+
+1. 使用 `python token-count.py` 运行脚本，并观察词元计数的差异。 确保优化后的提示仍可以生成高质量的回复。
+
+## 分析用户交互
+
+了解用户与应用的交互方式，有助于识别可提高词元使用率的模式。
+
+1. 查看用户提示的示例数据集：
+
+    - “总结《战争与和平》的情节。”******
+    - “关于猫有哪些有趣的事实？”****
+    - “为一家利用 AI 优化供应链的初创企业撰写一份详细的商业计划。”****
+    - “将 "Hello, how are you?" 翻译成法语。”****
+    - “向 10 岁儿童解释量子纠缠。”****
+    - “为我提供 10 个有关科幻短篇小说的创意。”****
+
+    对于每个示例提示，判断它更可能导致 AI 生成简短、篇幅适中还是较长/复杂的回复。************
+
+1. 查看分类。 你注意到哪些模式？ 如下所示：
+
+    - **** 抽象程度（例如，创造性与事实性）是否会影响回复长度？
+    - **** 开放式提示是否倾向于生成更长的内容？
+    - **** 指令复杂度（例如，“用 10 岁孩子能理解的方式解释”）会如何影响生成的回复？
+
+1. 输入以下命令以运行优化-提示**** 应用程序：
+
+    ```
+   python optimize-prompt.py
+    ```
+
+1. 使用上面提供的一些示例来验证分析。
+1. 现在，使用以下长格式提示并查看其输出：
+
+    ```
+   Write a comprehensive overview of the history of artificial intelligence, including key milestones, major contributors, and the evolution of machine learning techniques from the 1950s to today.
+    ```
+
+1. 按以下要求重写此提示：
+
+    - 限制范围
+    - 明确要求简洁
+    - 使用格式设置或结构来引导回复
+
+1. 对比重写前后的回复，验证是否获得了更简洁的答案。
+
+> 注意****：可以使用 `token-count.py` 来比较两次回复的词元使用量。
+<br>
+<details>
+<summary><b>重写后的提示示例：</b></summary><br>
+<p>“用项目符号列出 AI 历史上的 5 个关键里程碑。”</p>
+</details>
+
+## [**** 可选] 在实际应用场景中应用优化
+
+1. 假设你正在构建一个客户支持聊天机器人，它需要提供快速、准确的答复。
+1. 将你优化后的系统提示和模板集成到聊天机器人的代码中（可以使用 `optimize-prompt.py` 作为起点**）。
+1. 使用各种用户查询测试聊天机器人，确保其响应高效且准确。
+
+## 结束语
+
+在生成式 AI 应用程序中，提示优化是降低成本、提高性能的关键技能。 通过缩短提示、使用模板以及分析用户交互，可以打造更高效、更具可扩展性的解决方案。
+
+## 清理
+
+如果已完成对 Azure AI 服务的探索，则应删除在本练习中创建的资源，以避免产生不必要的 Azure 成本。
+
+1. 返回到包含 Azure 门户的浏览器标签页（或在新的浏览器标签页中重新打开 [Azure 门户](https://portal.azure.com?azure-portal=true) ），查看在其中部署了本练习中使用的资源的资源组的内容。
+1. 在工具栏中，选择“删除资源组”****。
+1. 输入资源组名称，并确认要删除该资源组。

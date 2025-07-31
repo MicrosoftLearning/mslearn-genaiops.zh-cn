@@ -18,49 +18,30 @@ lab:
 
 要完成本练习中的任务，你需要：
 
-- 一个 Azure AI Foundry 中心、
 - 一个 Azure AI Foundry 项目、
 - 一个已部署模型（如 GPT-4o）以及
 - 一个已连接的 Application Insights 资源。
 
-### 创建一个 AI Foundry 中心和项目
+### 在 Azure AI Foundry 项目中部署模型
 
-为快速设置中心和项目，下面提供了使用 Azure AI Foundry 门户 UI 的简单说明。
+为快速设置 Azure AI Foundry 项目，下面提供了使用 Azure AI Foundry 门户 UI 的简单说明。
 
 1. 在 Web 浏览器中打开 [Azure AI Foundry 门户](https://ai.azure.com)，网址为：`https://ai.azure.com`，然后使用 Azure 凭据登录。
-1. 在主页中，选择“**+ 创建项目**”。
-1. 在**创建项目**向导中，输入项目的有效名，如果出现建议使用现有中心的提示，请选择新建中心的选项。 然后查看将自动创建的 Azure 资源以支持中心和项目。
-1. 选择“**自定义**”并为中心指定以下设置：
-    - **中心名称**：*中心的有效名称*
+1. 在主页的“**浏览模型和功能**”部分中，搜索 `gpt-4o` 模型；我们将在项目中使用它。
+1. 在搜索结果中，选择 **gpt-4o** 模型以查看其详细信息，然后在模型的页面顶部，选择“**使用此模型**”。
+1. 当提示创建项目时，输入项目的有效名称并展开“**高级选项**”。
+1. 选择“**自定义**”，并为项目指定以下设置：
+    - **Azure AI Foundry 资源**：*Azure AI Foundry 资源的有效名称*
     - **订阅**：Azure 订阅
     - **资源组**：*创建或选择资源组*
-    - **位置**：选择**帮助我选择**，然后在“位置帮助程序”窗口中选择**gpt-4o**，并使用推荐的区域\*
-    - **连接 Azure AI 服务或 Azure OpenAI**：*新建 AI 服务资源*
-    - **连接 Azure AI 搜索**：跳过连接
+    - **区域**：*选择任何**支持 AI 服务的位置***\*
 
-    > \* Azure OpenAI 资源受区域模型配额约束。 如果稍后在练习中达到配额限制，你可能需要在不同的区域中创建另一个资源。
+    > \* 某些 Azure AI 资源受区域模型配额约束。 如果稍后在练习中达到配额限制，你可能需要在不同的区域中创建另一个资源。
 
-1. 选择“**下一步**”查看配置。 然后，选择“**创建**”并等待该进程完成。
-
-### 部署模型
-
-要生成可监视的数据，首先需要部署模型并与之交互。 在说明中要求你部署 GPT-4o 模型，但**你可以使用 Azure OpenAI 服务集合中任何可用的模型**。
-
-1. 在左侧窗格的“**我的资产**”部分中，选择“**模型 + 终结点**”页。
-1. 在“+ 部署模型”菜单中，选择“部署基础模型”。********
-1. 在列表中选择“gpt-4o”模型，并在部署详细信息中选择“自定义”，使用以下设置进行部署：********
-    - **部署名**：*有效的模型部署名*
-    - **部署类型**：标准
-    - **自动版本更新**：启用
-    - **模型版本**：*选择最新可用版本*
-    - **连接的 AI 资源**：*选择 Azure OpenAI 资源连接*
-    - **每分钟令牌数速率限制（数千个）**：1K
-    - **内容筛选器**：DefaultV2
-    - **启用动态配额**：已禁用
-
-    > **注意**：减少 TPM 有助于避免过度使用正在使用的订阅中可用的配额。 1,000 TPM 足以应对本练习所需的数据处理量。 如果可用配额低于上述 50,000 TPM，你仍然可完成本练习，但如果超过速率限制，可能会出现错误。
-
-1. 等待部署完成。
+1. 选择“**创建**”并等待项目（包括所选的 gpt-4 模型部署）创建。
+1. 在左侧的导航窗格中，选择“概述”以查看项目的主页。****
+1. 在“终结点和密钥”区域，确保已选择 Azure AI Foundry 库，并查看“Azure AI Foundry 项目终结点”************。
+1. 将终结点保存在记事本中。**** 你将使用此终结点连接到客户端应用程序中的项目。
 
 ### 连接 Application Insights
 
@@ -80,9 +61,6 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
 
 首先，检索与模型交互所需的身份验证信息。 然后，你将访问 Azure Cloud Shell 并更新配置，将提供的提示发送到你已部署的模型。
 
-1. 在 Azure AI Foundry 门户中，查看项目的“**概述**”页。
-1. 在“**项目详细信息**”区域中，记下**项目连接字符串**。
-1. “保存”**** 字符串到记事本中。 你将使用此连接字符串连接到客户端应用程序中的项目。
 1. 打开新的浏览器选项卡（使 Azure AI Foundry 门户在现有选项卡中保持打开状态）。
 1. 在新选项卡中，浏览到 [Azure 门户](https://portal.azure.com)，网址为：`https://portal.azure.com`；如果出现提示，请使用 Azure 凭据登录。
 1. 使用页面顶部搜索栏右侧的 **[\>_]** 按钮在 Azure 门户中新建 Cloud Shell，选择订阅中不含存储的 ***PowerShell*** 环境。
@@ -112,7 +90,7 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
     ```
    python -m venv labenv
    ./labenv/bin/Activate.ps1
-   pip install python-dotenv azure-identity azure-ai-projects azure-ai-inference azure-monitor-opentelemetry
+   pip install python-dotenv openai azure-identity azure-ai-projects azure-ai-inference azure-monitor-opentelemetry
     ```
 
 1. 输入以下命令以打开已提供的配置文件：
@@ -125,7 +103,7 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
 
 1. 在代码文件：
 
-    1. 将 **your_project_connection_string** 占位符替换为你项目的连接字符串（可在 Azure AI Foundry 门户中的项目“**概述**”页中复制）。
+    1. 在代码文件中，将 **your_project_endpoint** 占位符替换为项目的终结点（从 Azure AI Foundry 门户中的项目“**概述**”页复制）。
     1. 将 **your_model_deployment** 占位符替换为你为 GPT-4o 模型部署分配的名称（默认方式`gpt-4o`）。
 
 1. 替换占位符后，在代码编辑器中，使用 CTRL+S 命令或右键单击>“保存”以保存更改，然后使用 CTRL+Q 命令或右键单击>“退出”以关闭代码编辑器，同时让 cloud shell 命令行保持打开状态。**********************
@@ -140,7 +118,18 @@ Application Insights 现已连接到项目，数据将开始收集以供分析�
    code start-prompt.py
     ```
 
-1. 在代码编辑器下方的 Cloud Shell 命令行窗格中，输入以下命令以**运行脚本**：
+1. 在 Cloud Shell 命令行窗格中，输入以下命令以登录到 Azure。
+
+    ```
+   az login
+    ```
+
+    **<font color="red">必须登录到 Azure - 即使 Cloud Shell 会话已经过身份验证。</font>**
+
+    > **备注**：在大多数情况下，仅使用 *az login* 就足够了。 但是，如果在多个租户中有订阅，则可能需要使用 *--tenant* 参数指定租户。 有关详细信息，请参阅[使用 Azure CLI 以交互方式登录到 Azure](https://learn.microsoft.com/cli/azure/authenticate-azure-cli-interactively)。
+    
+1. 出现提示时，请按照说明在新选项卡中打开登录页，并输入提供的验证码和 Azure 凭据。 然后在命令行中完成登录过程，并在出现提示时选择包含 Azure AI Foundry 中心的订阅。
+1. 登录后，输入以下命令来运行应用程序：
 
     ```
    python start-prompt.py
