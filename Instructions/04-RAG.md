@@ -124,16 +124,59 @@ lab:
 
 现在，你将运行一个脚本，该脚本会引入并预处理数据、创建嵌入，并生成向量存储和索引，从而有效支持实现一个 RAG 系统。
 
-1. 运行以下命令以查看提供的脚本****：
+1. 运行以下命令以编辑所提供的脚本****：
 
     ```powershell
    code RAG.py
     ```
 
-1. 查看脚本，你会注意到它使用了一个包含酒店评论的 .csv 文件作为基础数据。 可以通过运行命令 `download app_hotel_reviews.csv` 并打开文件来查看此文件的内容。
+1. 在脚本中，查找“# 初始化将从 LangChain 的集成套件中使用的组件”****。 在此注释下方，粘贴以下代码：
+
+    ```python
+   # Initialize the components that will be used from LangChain's suite of integrations
+   llm = AzureChatOpenAI(azure_deployment=llm_name)
+   embeddings = AzureOpenAIEmbeddings(azure_deployment=embeddings_name)
+   vector_store = InMemoryVectorStore(embeddings)
+    ```
+
+1. 查看脚本，你会注意到它使用了一个包含酒店评论的 .csv 文件作为基础数据。 可以通过在命令行窗格中运行命令 `download app_hotel_reviews.csv` 并打开此文件来查看此文件的内容。
+1. 接下来，查找“# 将文档拆分为区块以用于嵌入和矢量存储”****。 在此注释下方，粘贴以下代码：
+
+    ```python
+   # Split the documents into chunks for embedding and vector storage
+   text_splitter = RecursiveCharacterTextSplitter(
+       chunk_size=200,
+       chunk_overlap=20,
+       add_start_index=True,
+   )
+   all_splits = text_splitter.split_documents(docs)
+    
+   print(f"Split documents into {len(all_splits)} sub-documents.")
+    ```
+
+    上面的代码将一组大型文档拆分为较小的区块。 这一点很重要，因为许多嵌入模型（如用于语义搜索或矢量数据库的模型）都有令牌限制，并且在较短的文本中表现更好。
+
+1. 接下来，查找“# 嵌入每个文本区块的内容并将这些嵌入内容插入到矢量存储中”****。 在此注释下方，粘贴以下代码：
+
+    ```python
+   # Embed the contents of each text chunk and insert these embeddings into a vector store
+   document_ids = vector_store.add_documents(documents=all_splits)
+    ```
+
+1. 接下来，查找“# 根据用户输入从矢量存储中检索相关文档”****。 在此注释下方，粘贴以下代码，注意正确的缩进：
+
+    ```python
+   # Retrieve relevant documents from the vector store based on user input
+   retrieved_docs = vector_store.similarity_search(question, k=10)
+   docs_content = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    ```
+
+    上面的代码在矢量存储中搜索与用户输入的问题最相似的文档。 使用用于文档的同一嵌入模型将问题转换为矢量。 然后，系统将此矢量与所有存储的矢量进行比较，并检索最相似的矢量。
+
+1. 保存所做更改。
 1. 在命令行中输入以下命令以**运行脚本**：
 
-    ```
+    ```powershell
    python RAG.py
     ```
 
